@@ -1,0 +1,68 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider          = "sqlserver"
+  url               = env("DATABASE_URL")
+  shadowDatabaseUrl = env("SHADOW_DATABASE_URL") // This tells Prisma to use the shadow database
+}
+
+// UserProfile model
+model UserProfile {
+  id             String     @id @default(uuid()) // Using UUID
+  name           String
+  email          String     @unique
+  username       String     @unique
+  profilePicture String?
+  password       String
+  description    String?
+  loves          Love[] // Relation to the Loves table
+  struggles      Struggle[] // Relation to the Struggles table
+  activities     Activity[] // Relation to the Activities table
+  funFacts       FunFact[] // Relation to the FunFacts table
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
+
+  @@map("user_profiles") // Optional: This maps the table name to "user_profiles" in your Azure SQL
+}
+
+// Table for loves
+model Love {
+  id            String      @id @default(uuid()) // Using UUID
+  content       String
+  userProfile   UserProfile @relation(fields: [userProfileId], references: [id], onDelete: Cascade)
+  userProfileId String
+
+  @@map("loves")
+}
+
+// Table for struggles
+model Struggle {
+  id            String      @id @default(uuid()) // Using UUID
+  content       String
+  userProfile   UserProfile @relation(fields: [userProfileId], references: [id], onDelete: Cascade)
+  userProfileId String
+
+  @@map("struggles")
+}
+
+// Table for activities
+model Activity {
+  id            String      @id @default(uuid()) // Using UUID
+  content       String
+  userProfile   UserProfile @relation(fields: [userProfileId], references: [id], onDelete: Cascade)
+  userProfileId String
+
+  @@map("activities")
+}
+
+// Table for fun facts
+model FunFact {
+  id            String      @id @default(uuid()) // Using UUID
+  content       String
+  userProfile   UserProfile @relation(fields: [userProfileId], references: [id], onDelete: Cascade)
+  userProfileId String
+
+  @@map("fun_facts")
+}

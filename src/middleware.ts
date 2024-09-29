@@ -21,8 +21,12 @@ export async function middleware(request: NextRequest) {
   // Get the requested path
   const path = request.nextUrl.pathname;
 
-  // Allow access to login and sign-in pages for unauthenticated users
-  if (path === "/app/login" || path === "/app/signIn") {
+  // Allow access to login, sign-in, and signup pages for unauthenticated users
+  if (
+    path === "/app/login" ||
+    path === "/app/signIn" ||
+    path === "/app/signup"
+  ) {
     return NextResponse.next();
   }
 

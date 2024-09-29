@@ -3,7 +3,7 @@ User-agent: *
 Allow: /
 
 # Host
-Host: https://app.alias.software
+Host: https://empathica.vercel.app/
 
 # Sitemaps
-Sitemap: https://app.alias.software/sitemap.xml
+Sitemap: https://empathica.vercel.app/sitemap.xml

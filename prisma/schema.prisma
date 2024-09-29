@@ -21,8 +21,10 @@ model UserProfile {
   struggles      Struggle[] // Relation to the Struggles table
   activities     Activity[] // Relation to the Activities table
   funFacts       FunFact[] // Relation to the FunFacts table
-  createdAt      DateTime   @default(now())
-  updatedAt      DateTime   @updatedAt
+  chats          Chat[] // Relation to the Chats table
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@map("user_profiles") // Optional: This maps the table name to "user_profiles" in your Azure SQL
 }
@@ -65,4 +67,16 @@ model FunFact {
   userProfileId String
 
   @@map("fun_facts")
+}
+
+// Table for past chats
+model Chat {
+  id            String      @id @default(uuid()) // Using UUID
+  threadsId     String // Store the thread ID from OpenAI or chat service
+  userProfile   UserProfile @relation(fields: [userProfileId], references: [id], onDelete: Cascade)
+  userProfileId String
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  @@map("chats") // Optional: This maps the table name to "chats"
 }

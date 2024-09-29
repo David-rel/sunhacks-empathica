@@ -36,9 +36,11 @@ const Sidebar: React.FC<SidebarProps> = ({ user }) => {
   const currentPath = usePathname();
 
   return (
-    <div className="fixed left-0 top-16 h-[calc(100vh-4rem)] w-56 bg-softPurple p-4 shadow-lg flex flex-col justify-between overflow-y-auto">
+    <div className="fixed left-0 top-0 h-full w-56 bg-softPurple p-4 shadow-lg flex flex-col justify-between">
       {/* Top Section */}
-      <div>
+      <div className="mt-16">
+        {" "}
+        {/* Push content down below top bar */}
         <h2 className="text-xl font-bold text-darkNavy mb-4 border-b-2 border-darkNavy pb-2">
           Navigation
         </h2>

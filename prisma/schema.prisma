@@ -22,11 +22,25 @@ model UserProfile {
   activities     Activity[] // Relation to the Activities table
   funFacts       FunFact[] // Relation to the FunFacts table
   chats          Chat[] // Relation to the Chats table
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  journal        Journal[]
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
 
   @@map("user_profiles") // Optional: This maps the table name to "user_profiles" in your Azure SQL
+}
+
+model Journal {
+  id          String   @id @default(uuid()) // UUID for unique identification
+  title       String // Journal title
+  description String? // Optional journal description
+  createdAt   DateTime @default(now()) // Timestamp for creation
+  updatedAt   DateTime @updatedAt // Timestamp for updates
+
+  // Foreign key relation to UserProfile
+  userId      String
+  userProfile UserProfile @relation(fields: [userId], references: [id])
+
+  @@map("journals") // Optional: This maps the table name to "journals" in your Azure SQL
 }
 
 // Table for loves

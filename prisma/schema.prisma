@@ -9,25 +9,55 @@ datasource db {
 }
 
 // UserProfile model
+// UserProfile model
 model UserProfile {
-  id             String       @id @default(uuid()) // Using UUID
+  id             String                  @id @default(uuid()) // Using UUID
   name           String
-  email          String       @unique
-  username       String       @unique
+  email          String                  @unique
+  username       String                  @unique
   profilePicture String?
   password       String
   description    String?
-  loves          Love[] // Relation to the Loves table
-  struggles      Struggle[] // Relation to the Struggles table
-  activities     Activity[] // Relation to the Activities table
-  funFacts       FunFact[] // Relation to the FunFacts table
-  chats          Chat[] // Relation to the Chats table
+  loves          Love[] // Relation to the Loves table  
+  struggles      Struggle[] // Relation to the Struggles table  
+  activities     Activity[] // Relation to the Activities table  
+  funFacts       FunFact[] // Relation to the FunFacts table  
+  chats          Chat[] // Relation to the Chats table  
   journals       Journal[]
   meditations    Meditation[]
-  createdAt      DateTime     @default(now())
-  updatedAt      DateTime     @updatedAt
+  dailyTasks     DailyMentalHealthTask[] // Relation to the DailyMentalHealthTask table
 
-  @@map("user_profiles") // Optional: This maps the table name to "user_profiles" in your Azure SQL
+  // Questionnaire fields
+  meditation           String? // User's preferred meditation frequency
+  journaling           String? // User's preferred journaling frequency
+  meals                String? // User's preferred meal count
+  sleep                String? // User's preferred sleep hours
+  exercise             String? // User's preferred exercise duration
+  questionaireComplete Boolean @default(false)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("user_profiles")
+}
+
+// DailyMentalHealthTask model to track daily task completion
+model DailyMentalHealthTask {
+  id          String      @id @default(uuid()) // Unique ID for each task entry
+  userId      String // Foreign key to link to the UserProfile
+  userProfile UserProfile @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  date DateTime @default(now()) // The date for the task entry
+
+  // Daily tasks - boolean values to track if they are completed
+  meditationCompleted Boolean @default(false) // Whether meditation was completed
+  journalingCompleted Boolean @default(false) // Whether journaling was completed
+  mealsCompleted      Boolean @default(false) // Whether meals were tracked
+  sleepCompleted      Boolean @default(false) // Whether sleep goal was met
+  exerciseCompleted   Boolean @default(false) // Whether exercise goal was met
+
+  createdAt DateTime @default(now()) // Entry creation timestamp
+  updatedAt DateTime @updatedAt // Auto-update on modification
 }
 
 model Meditation {

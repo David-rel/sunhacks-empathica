@@ -26,6 +26,12 @@ export async function GET(request: Request) {
         description: true,
         createdAt: true,
         updatedAt: true,
+        questionaireComplete: true,
+        meditation: true,
+        journaling: true,
+        meals: true,
+        sleep: true,
+        exercise: true,
       },
     });
 

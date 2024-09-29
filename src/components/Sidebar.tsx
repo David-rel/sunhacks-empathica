@@ -39,7 +39,6 @@ const Sidebar: React.FC<SidebarProps> = ({ user }) => {
     <div className="fixed left-0 top-0 h-full w-56 bg-softPurple p-4 shadow-lg flex flex-col justify-between">
       {/* Top Section */}
       <div className="mt-16">
-        {" "}
         {/* Push content down below top bar */}
         <h2 className="text-xl font-bold text-darkNavy mb-4 border-b-2 border-darkNavy pb-2">
           Navigation
@@ -48,7 +47,9 @@ const Sidebar: React.FC<SidebarProps> = ({ user }) => {
           <Link key={item.path} href={item.path}>
             <div
               className={`flex items-center space-x-3 p-2 my-2 rounded-md cursor-pointer transition-colors ${
-                currentPath === item.path
+                // Highlight only if the exact path is "/app" for Chat, or currentPath starts with item.path for others
+                (item.path === "/app" && currentPath === "/app") ||
+                (item.path !== "/app" && currentPath.startsWith(item.path))
                   ? "bg-brightTeal text-white"
                   : "text-darkNavy hover:bg-skyBlue hover:text-white"
               }`}
@@ -59,7 +60,6 @@ const Sidebar: React.FC<SidebarProps> = ({ user }) => {
           </Link>
         ))}
       </div>
-
       {/* Bottom Section - User Info */}
       <div className="flex items-center p-2 bg-white rounded-md shadow-sm text-darkNavy space-x-3 mt-auto">
         {user.profilePicture ? (

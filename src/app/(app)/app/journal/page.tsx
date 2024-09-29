@@ -74,7 +74,6 @@ const JournalPage = () => {
       const response = await fetch(`/api/deleteJournal?id=${journalId}`, {
         method: "DELETE",
       });
-
       if (response.ok) {
         // Remove the deleted journal from the state
         setJournals((prevJournals) =>
@@ -144,10 +143,10 @@ const JournalPage = () => {
               journals.map((journal) => (
                 <div
                   key={journal.id}
-                  className="bg-white shadow-md rounded-lg p-4"
+                  className="bg-white shadow-md rounded-lg p-4 overflow-hidden"
                 >
                   <h2 className="text-lg font-bold mb-2">{journal.title}</h2>
-                  <p className="text-sm text-gray-600 mb-4">
+                  <p className="text-sm text-gray-600 mb-4 break-words">
                     {formatDescription(
                       journal.description || "No description provided."
                     )}

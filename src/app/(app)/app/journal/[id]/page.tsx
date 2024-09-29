@@ -105,11 +105,10 @@ const ViewJournalPage = () => {
               {new Date(journal?.createdAt || "").toLocaleDateString()}
             </span>
           </div>
-
           {/* Journal Content */}
-          <div className="bg-white shadow-md rounded-lg p-6">
+          <div className="bg-white shadow-md rounded-lg p-6 overflow-hidden">
             <div
-              className="text-gray-700"
+              className="text-gray-700 break-words"
               dangerouslySetInnerHTML={{
                 __html: journal?.description || "No description available.",
               }}

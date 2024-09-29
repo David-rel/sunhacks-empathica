@@ -31,54 +31,48 @@ const ViewJournalPage = () => {
   const [journal, setJournal] = useState<Journal | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // Fetch user data
+  // Fetch user and journal data
   useEffect(() => {
-    const fetchUserData = async () => {
+    const fetchUserDataAndJournal = async () => {
       if (status === "authenticated" && session?.user?.id) {
         try {
-          const response = await fetch(`/api/getUser?id=${session.user.id}`);
-          if (response.ok) {
-            const data = await response.json();
-            setUserData(data);
-            fetchJournal(data.id); // Fetch the specific journal using the user ID
-          } else {
-            console.error("Failed to fetch user data");
-          }
+          // Fetch user data
+          const userResponse = await fetch(
+            `/api/getUser?id=${session.user.id}`
+          );
+          if (!userResponse.ok) throw new Error("Failed to fetch user data");
+
+          const userData = await userResponse.json();
+          setUserData(userData);
+
+          // Fetch the specific journal
+          const journalResponse = await fetch(
+            `/api/getJournal?id=${id}&userId=${userData.id}`
+          );
+          if (!journalResponse.ok)
+            throw new Error("Failed to fetch the journal");
+
+          const journalData = await journalResponse.json();
+          setJournal(journalData);
         } catch (error) {
-          console.error("Error fetching user data:", error);
+          console.error("Error fetching data:", error);
+        } finally {
+          setLoading(false);
         }
+      } else if (status === "unauthenticated") {
+        router.push("/app/login");
       }
     };
-    fetchUserData();
-  }, [status, session]);
 
-  // Fetch the specific journal based on the journal ID
-  const fetchJournal = async (userId: string) => {
-    try {
-      const response = await fetch(`/api/getJournal?id=${id}&userId=${userId}`);
-      if (response.ok) {
-        const data = await response.json();
-        setJournal(data);
-      } else {
-        console.error("Failed to fetch the journal");
-      }
-    } catch (error) {
-      console.error("Error fetching the journal:", error);
-    } finally {
-      setLoading(false);
+    if (status !== "loading") {
+      fetchUserDataAndJournal();
     }
-  };
+  }, [status, session, id, router]);
 
   if (status === "loading" || loading) return <div>Loading...</div>;
-  if (status === "unauthenticated") {
-    router.push("/app/login");
-    return null;
-  }
 
   return (
-    <div
-      className={`flex-1 min-h-screen flex flex-col bg-gray-100 transition-all duration-300 pt-12`}
-    >
+    <div className="flex-1 min-h-screen flex flex-col bg-gray-100 transition-all duration-300 pt-12">
       {/* Sidebar Component */}
       <Sidebar
         user={{
@@ -102,7 +96,9 @@ const ViewJournalPage = () => {
             </h1>
             <span className="text-gray-600 text-sm">
               Created on:{" "}
-              {new Date(journal?.createdAt || "").toLocaleDateString()}
+              {journal?.createdAt
+                ? new Date(journal.createdAt).toLocaleDateString()
+                : "N/A"}
             </span>
           </div>
           {/* Journal Content */}

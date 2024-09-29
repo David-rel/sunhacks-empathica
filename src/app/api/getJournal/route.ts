@@ -3,10 +3,9 @@ import prisma from "../../../lib/prisma"; // Adjust the path if your Prisma inst
 
 export async function GET(req: NextRequest) {
   try {
-    // Extract query parameters
-    const { searchParams } = new URL(req.url);
-    const journalId = searchParams.get("id");
-    const userId = searchParams.get("userId");
+    // Get the search parameters from the request URL
+    const journalId = req.nextUrl.searchParams.get("id");
+    const userId = req.nextUrl.searchParams.get("userId");
 
     console.log("Received journalId:", journalId);
     console.log("Received userId:", userId);

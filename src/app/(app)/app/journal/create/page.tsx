@@ -1,11 +1,15 @@
 "use client";
-import React, { useState, useEffect } from "react";
-import ReactQuill from "react-quill";
+import React, { useState, useEffect, Suspense } from "react";
+import dynamic from "next/dynamic";
 import "react-quill/dist/quill.snow.css";
 import Sidebar from "@/components/Sidebar";
 import TopBar from "@/components/TopBar";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
+
+const ReactQuill = dynamic(() => import("react-quill"), {
+  ssr: false,
+});
 
 interface UserProfile {
   id: string;
@@ -93,7 +97,6 @@ const CreateJournal = () => {
           profilePicture: userData?.profilePicture,
         }}
       />
-
       <div className="flex-1 flex flex-col pl-56">
         {/* TopBar Component */}
         <TopBar
@@ -102,7 +105,6 @@ const CreateJournal = () => {
             profilePicture: userData?.profilePicture,
           }}
         />
-
         <div className="flex flex-col flex-grow p-6">
           {/* Header Section */}
           <div className="flex justify-between items-center mb-4">
@@ -111,7 +113,6 @@ const CreateJournal = () => {
             </h1>
             <span className="text-gray-600 text-sm">{today}</span>
           </div>
-
           {/* Journal Form Section */}
           <div className="bg-white shadow-md rounded-lg p-6">
             {/* Title Input */}
@@ -131,7 +132,6 @@ const CreateJournal = () => {
                 placeholder="Enter your journal title"
               />
             </div>
-
             {/* Description Input (React Quill) */}
             <div className="mb-4">
               <label
@@ -147,7 +147,6 @@ const CreateJournal = () => {
                 className="h-40"
               />
             </div>
-
             {/* Create Journal Button */}
             <button
               onClick={handleCreateJournal}
@@ -163,4 +162,10 @@ const CreateJournal = () => {
   );
 };
 
-export default CreateJournal;
+export default function JournalEditPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <CreateJournal />
+    </Suspense>
+  );
+}

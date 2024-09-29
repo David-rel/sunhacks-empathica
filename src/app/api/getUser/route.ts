@@ -1,11 +1,10 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma"; // Adjust the path to your Prisma instance
 
-export async function GET(request: Request) {
+export async function GET(request: NextRequest) {
   try {
     // Extract the user ID from the URL search parameters
-    const url = new URL(request.url);
-    const userId = url.searchParams.get("id");
+    const userId = request.nextUrl.searchParams.get("id");
 
     if (!userId) {
       return NextResponse.json(

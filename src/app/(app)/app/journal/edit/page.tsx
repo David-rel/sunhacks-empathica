@@ -6,6 +6,8 @@ import TopBar from "@/components/TopBar";
 import { useSession } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import "react-quill/dist/quill.snow.css"; // Make sure you import the styles
+import { Suspense } from "react";
+
 
 // Dynamically import ReactQuill to avoid SSR issues
 const ReactQuill = dynamic(() => import("react-quill"), { ssr: false });
@@ -28,7 +30,7 @@ interface UserProfile {
   description?: string;
 }
 
-const EditJournalPage = () => {
+const EditJournalComponent = () => {
   const { data: session, status } = useSession();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -162,4 +164,11 @@ const EditJournalPage = () => {
   );
 };
 
-export default EditJournalPage;
+
+export default function JournalEditPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <EditJournalComponent />
+    </Suspense>
+  );
+}

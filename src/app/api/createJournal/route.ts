@@ -1,6 +1,7 @@
 // /app/api/createJournal/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "../../../lib/prisma"; // Adjust path based on your project structure
+export const dynamic = "force-dynamic";
 
 export async function POST(req: NextRequest) {
   const { userId, title, description } = await req.json();

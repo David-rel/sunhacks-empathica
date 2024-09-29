@@ -2,6 +2,7 @@
 import { NextResponse } from "next/server";
 import prisma from "../../../../lib/prisma"; // Adjust the path according to where your prisma instance is located
 import bcrypt from "bcryptjs";
+export const dynamic = "force-dynamic";
 
 export async function POST(request: Request) {
   try {

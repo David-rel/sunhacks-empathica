@@ -3,6 +3,7 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import prisma from "@/lib/prisma"; // Adjust the path as needed
 import bcrypt from "bcryptjs";
 import { JWT } from "next-auth/jwt";
+export const dynamic = "force-dynamic";
 
 const authOptions: AuthOptions = {
   providers: [

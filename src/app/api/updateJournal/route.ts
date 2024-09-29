@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "../../../lib/prisma"; // Adjust the path to your Prisma instance
+export const dynamic = "force-dynamic";
 
 export async function PUT(req: NextRequest) {
   try {

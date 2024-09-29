@@ -1,10 +1,10 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import React, { Suspense, useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import TopBar from "@/components/TopBar";
 import Sidebar from "@/components/Sidebar";
-import { FaPaperPlane, FaChevronDown } from "react-icons/fa"; // Import icons
+import { FaPaperPlane, FaChevronDown } from "react-icons/fa";
 
 interface UserProfile {
   id: string;
@@ -17,22 +17,37 @@ interface UserProfile {
   updatedAt: string;
 }
 
+interface Thread {
+  id: string;
+  threadsId: string;
+  createdAt: string;
+}
+
 const Chat = () => {
   const { data: session, status } = useSession();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [userData, setUserData] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState("");
   const [chatHistory, setChatHistory] = useState<
-    { message: string; sender: "user" | "bot" }[]
+    { message: string; sender: "user" | "bot"; createdAt?: Date }[]
   >([]);
   const [pastChatsOpen, setPastChatsOpen] = useState(false);
   const [threadId, setThreadId] = useState<string | null>(null);
   const [botId, setBotId] = useState<string | null>(null);
   const [runId, setRunId] = useState<string | null>(null);
   const [waitingForResponse, setWaitingForResponse] = useState(false);
+  const [threads, setThreads] = useState<Thread[]>([]);
 
+  // Fetch user data and available threads when component mounts
   useEffect(() => {
+    const urlThreadId = searchParams.get("threadId");
+    if (urlThreadId) {
+      setThreadId(urlThreadId);
+      fetchThreadMessages(urlThreadId);
+    }
+
     const fetchUserData = async () => {
       if (status === "authenticated" && session?.user?.id) {
         try {
@@ -50,8 +65,60 @@ const Chat = () => {
         }
       }
     };
+
+    const fetchThreads = async () => {
+      if (status === "authenticated" && session?.user?.id) {
+        try {
+          const response = await fetch(`/api/getThreads?id=${session.user.id}`);
+          if (response.ok) {
+            const data = await response.json();
+            setThreads(data);
+          } else {
+            console.error("Failed to fetch threads");
+          }
+        } catch (error) {
+          console.error("Error fetching threads:", error);
+        }
+      }
+    };
+
     fetchUserData();
+    fetchThreads();
   }, [status, session]);
+
+  // Fetch messages from OpenAI for the selected thread
+  const fetchThreadMessages = async (selectedThreadId: string) => {
+    try {
+      const response = await fetch(
+        `/api/getThreadMessages?threadId=${selectedThreadId}`
+      );
+      if (response.ok) {
+        const data = await response.json();
+        const messages = data.messages;
+
+        const formattedMessages = messages
+          .map((msg: any) => ({
+            message: msg.message,
+            sender: msg.sender,
+            createdAt: new Date(msg.createdAt),
+          }))
+          .sort(
+            (
+              a: { createdAt: { getTime: () => number } },
+              b: { createdAt: { getTime: () => number } }
+            ) => a.createdAt.getTime() - b.createdAt.getTime()
+          );
+
+        setChatHistory(formattedMessages);
+        setThreadId(selectedThreadId);
+        setBotId(null);
+      } else {
+        console.error("Failed to fetch thread messages");
+      }
+    } catch (error) {
+      console.error("Error fetching thread messages:", error);
+    }
+  };
 
   if (status === "loading" || loading) return <div>Loading...</div>;
   if (status === "unauthenticated") {
@@ -63,62 +130,58 @@ const Chat = () => {
     if (message.trim()) {
       setChatHistory((prev) => [...prev, { message, sender: "user" }]);
       try {
-        setMessage(""); // Clear the input
+        setMessage("");
         setWaitingForResponse(true);
 
-        if (!threadId || !botId) {
-          // First message, initialize chat and get threadId and botId
+        // Check if threadId exists
+        if (threadId && botId) {
+          await fetchRunId(threadId, botId, message, false); // Pass false for isFirstMessage
+        } else {
+          // Initialize a new chat and get threadId and botId
           const response = await fetch("/api/getBot", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ message }),
+            body: JSON.stringify({ message, userId: session?.user.id }), // Include userId
           });
           if (response.ok) {
             const { threadId: newThreadId, botId: newBotId } =
               await response.json();
             setThreadId(newThreadId);
             setBotId(newBotId);
-            console.log(message);
-            // Call fetchRunId to start getting the runId and send the message
-            await fetchRunId(newThreadId, newBotId, message);
+            await fetchRunId(newThreadId, newBotId, message, true); // Pass true for isFirstMessage
           } else {
             console.error("Failed to initialize chat");
           }
-        } else {
-          // If threadId and botId exist, directly send the message
-          await fetchRunId(threadId, botId, message);
         }
       } catch (error) {
         console.error("Error handling the message:", error);
       }
-      setMessage(""); // Clear the input
-      console.log("Message sent to AI:", message);
+      setMessage("");
     }
   };
 
-  // Function to get the Run ID after sending a message
+  // Update fetchRunId to handle isFirstMessage
   const fetchRunId = async (
     currentThreadId: string,
     currentBotId: string,
-    userMessage: string
+    userMessage: string,
+    isFirstMessage: boolean
   ) => {
     try {
-      console.log("fetch run id: " + userMessage);
-      // Send the message to the runId endpoint
       const response = await fetch("/api/getRunId", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           threadId: currentThreadId,
           botId: currentBotId,
-          message: userMessage, // Include the user's message
+          message: userMessage,
+          userId: session?.user.id,
+          isFirstMessage, // Include isFirstMessage flag
         }),
       });
-
       if (response.ok) {
         const { runId: newRunId } = await response.json();
         setRunId(newRunId);
-        // Start checking for the bot's response using the new runId
         checkForResponse(currentThreadId, newRunId);
       } else {
         console.error("Failed to get Run ID");
@@ -128,7 +191,6 @@ const Chat = () => {
     }
   };
 
-  // Continuously check for the response from OpenAI
   const checkForResponse = async (
     currentThreadId: string,
     currentRunId: string
@@ -145,11 +207,13 @@ const Chat = () => {
         if (response.ok) {
           const { status, message } = await response.json();
           if (status === "completed") {
-            setChatHistory((prev) => [...prev, { message, sender: "bot" }]);
+            setChatHistory((prev) => [
+              ...prev,
+              { message, sender: "bot", createdAt: new Date() },
+            ]);
             setWaitingForResponse(false);
           } else {
-            // If not completed, check again after a delay
-            setTimeout(fetchMessages, 2000); // Polling interval, adjust as needed
+            setTimeout(fetchMessages, 2000);
           }
         } else {
           console.error("Failed to retrieve messages");
@@ -170,6 +234,12 @@ const Chat = () => {
     }
   };
 
+  const handleThreadClick = (selectedThreadId: string) => {
+    setThreadId(selectedThreadId);
+    router.push(`/app?threadId=${selectedThreadId}`);
+    fetchThreadMessages(selectedThreadId);
+  };
+
   return (
     <div
       className={`flex-1 min-h-screen flex flex-col bg-gray-100 transition-all duration-300 pt-12`}
@@ -188,44 +258,36 @@ const Chat = () => {
           }}
         />
         <div className="flex flex-col flex-grow p-6 relative">
-          {" "}
-          {/* Changed to relative for the fixed input */}
-          <div className="flex justify-between items-center mb-4">
-            <div className="relative">
-              <button
-                onClick={() => setPastChatsOpen((prev) => !prev)}
-                className="bg-white border border-gray-300 rounded-lg px-4 py-2 flex items-center"
-              >
-                <span className="mr-2">Past Chats</span>
-                <FaChevronDown />
-              </button>
-              {pastChatsOpen && (
-                <div className="absolute left-0 mt-2 bg-white border border-gray-300 rounded-md shadow-lg z-10">
-                  <ul>
-                    <li className="px-4 py-2 hover:bg-gray-100 cursor-pointer">
-                      Chat 1
-                    </li>
-                    <li className="px-4 py-2 hover:bg-gray-100 cursor-pointer">
-                      Chat 2
-                    </li>
-                    <li className="px-4 py-2 hover:bg-gray-100 cursor-pointer">
-                      Chat 3
-                    </li>
-                  </ul>
-                </div>
-              )}
-            </div>
-            <h1 className="text-2xl text-darkNavy mx-auto align-middle font-bold mb-4 text-center">
-              Chat with Our AI
-            </h1>
-            <button className="bg-brightTeal text-white rounded-lg px-4 py-2">
-              Talk with AI
+          <div className="relative">
+            <button
+              onClick={() => setPastChatsOpen((prev) => !prev)}
+              className="bg-white border px-4 py-2 flex items-center"
+            >
+              <span className="mr-2">Past Chats</span>
+              <FaChevronDown />
             </button>
+            {pastChatsOpen && (
+              <div className="absolute left-0 mt-2 bg-white border rounded-md shadow-lg z-10">
+                <ul>
+                  {threads.length > 0 ? (
+                    threads.map((thread) => (
+                      <li
+                        key={thread.id}
+                        className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
+                        onClick={() => handleThreadClick(thread.threadsId)}
+                      >
+                        {thread.threadsId}
+                      </li>
+                    ))
+                  ) : (
+                    <li className="px-4 py-2 text-gray-500">No past chats</li>
+                  )}
+                </ul>
+              </div>
+            )}
           </div>
           {/* Chat content container */}
           <div className="flex-grow bg-white rounded-lg shadow-md p-4 flex flex-col overflow-y-auto mb-16">
-            {" "}
-            {/* Added mb-16 to prevent overlap with the input */}
             <div className="flex-grow overflow-y-auto p-2">
               {chatHistory.map((chat, index) => (
                 <div
@@ -249,8 +311,6 @@ const Chat = () => {
           </div>
           {/* Fixed input bar */}
           <div className="absolute bottom-0 left-0 w-full bg-white p-4 flex items-center border-t border-gray-300">
-            {" "}
-            {/* Added border-t for a subtle line */}
             <input
               type="text"
               value={message}
@@ -274,4 +334,12 @@ const Chat = () => {
   );
 };
 
-export default Chat;
+
+
+export default function ChatPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <Chat />
+    </Suspense>
+  );
+}

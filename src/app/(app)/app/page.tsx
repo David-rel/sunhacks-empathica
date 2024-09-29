@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import TopBar from "@/components/TopBar";
 import Sidebar from "@/components/Sidebar";
 import { FaPaperPlane, FaChevronDown } from "react-icons/fa";
+import Link from "next/link";
 
 interface UserProfile {
   id: string;
@@ -258,34 +259,45 @@ const Chat = () => {
           }}
         />
         <div className="flex flex-col flex-grow p-6 relative">
-          <div className="relative">
-            <button
-              onClick={() => setPastChatsOpen((prev) => !prev)}
-              className="bg-white border px-4 py-2 flex items-center"
-            >
-              <span className="mr-2">Past Chats</span>
-              <FaChevronDown />
-            </button>
-            {pastChatsOpen && (
-              <div className="absolute left-0 mt-2 bg-white border rounded-md shadow-lg z-10">
-                <ul>
-                  {threads.length > 0 ? (
-                    threads.map((thread) => (
-                      <li
-                        key={thread.id}
-                        className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
-                        onClick={() => handleThreadClick(thread.threadsId)}
-                      >
-                        {thread.threadsId}
-                      </li>
-                    ))
-                  ) : (
-                    <li className="px-4 py-2 text-gray-500">No past chats</li>
-                  )}
-                </ul>
-              </div>
-            )}
+          <div className="relative flex justify-between items-center mb-4">
+            {/* Left section: Past Chats Button */}
+            <div className="relative">
+              <button
+                onClick={() => setPastChatsOpen((prev) => !prev)}
+                className="bg-white border px-4 py-2 flex items-center"
+              >
+                <span className="mr-2">Past Chats</span>
+                <FaChevronDown />
+              </button>
+              {pastChatsOpen && (
+                <div className="absolute left-0 mt-2 bg-white border rounded-md shadow-lg z-10">
+                  <ul>
+                    {threads.length > 0 ? (
+                      threads.map((thread) => (
+                        <li
+                          key={thread.id}
+                          className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
+                          onClick={() => handleThreadClick(thread.threadsId)}
+                        >
+                          {thread.threadsId}
+                        </li>
+                      ))
+                    ) : (
+                      <li className="px-4 py-2 text-gray-500">No past chats</li>
+                    )}
+                  </ul>
+                </div>
+              )}
+            </div>
+
+            {/* Center section: Title */}
+            <h1 className="text-2xl text-darkNavy font-bold text-center">
+              Chat with Our AI
+            </h1>
+
+           
           </div>
+
           {/* Chat content container */}
           <div className="flex-grow bg-white rounded-lg shadow-md p-4 flex flex-col overflow-y-auto mb-16">
             <div className="flex-grow overflow-y-auto p-2">

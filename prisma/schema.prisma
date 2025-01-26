@@ -3,135 +3,128 @@ generator client {
 }
 
 datasource db {
-  provider          = "mysql"
-  url               = env("DATABASE_URL")
+  provider = "mysql"
+  url      = env("DATABASE_URL")
 }
 
-// UserProfile model
-// UserProfile model
 model UserProfile {
-  id             String                  @id @default(uuid()) // Using UUID
-  name           String
-  email          String                  @unique
-  username       String                  @unique
-  profilePicture String?
-  password       String
-  description    String?
-  loves          Love[] // Relation to the Loves table  
-  struggles      Struggle[] // Relation to the Struggles table  
-  activities     Activity[] // Relation to the Activities table  
-  funFacts       FunFact[] // Relation to the FunFacts table  
-  chats          Chat[] // Relation to the Chats table  
-  journals       Journal[]
-  meditations    Meditation[]
-  dailyTasks     DailyMentalHealthTask[] // Relation to the DailyMentalHealthTask table
-
-  // Questionnaire fields
-  meditation           String? // User's preferred meditation frequency
-  journaling           String? // User's preferred journaling frequency
-  meals                String? // User's preferred meal count
-  sleep                String? // User's preferred sleep hours
-  exercise             String? // User's preferred exercise duration
-  questionaireComplete Boolean @default(false)
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id                   String                  @id @default(uuid())
+  name                 String
+  email                String                  @unique
+  username             String                  @unique
+  profilePicture       String?
+  password             String
+  description          String?
+  meditation           String?
+  journaling           String?
+  meals                String?
+  sleep                String?
+  exercise             String?
+  questionaireComplete Boolean                 @default(false)
+  createdAt            DateTime                @default(now())
+  updatedAt            DateTime                @updatedAt
+  dailyTasks           DailyMentalHealthTask[]
+  meditations          Meditation[]
+  activities           Activity[]
+  chats                Chat[]
+  funFacts             FunFact[]
+  journals             Journal[]
+  loves                Love[]
+  struggles            Struggle[]
 
   @@map("user_profiles")
 }
 
-// DailyMentalHealthTask model to track daily task completion
 model DailyMentalHealthTask {
-  id          String      @id @default(uuid()) // Unique ID for each task entry
-  userId      String // Foreign key to link to the UserProfile
-  userProfile UserProfile @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id                  String      @id @default(uuid())
+  userId              String
+  date                DateTime    @default(now())
+  meditationCompleted Boolean     @default(false)
+  journalingCompleted Boolean     @default(false)
+  mealsCompleted      Boolean     @default(false)
+  sleepCompleted      Boolean     @default(false)
+  exerciseCompleted   Boolean     @default(false)
+  createdAt           DateTime    @default(now())
+  updatedAt           DateTime    @updatedAt
+  userProfile         UserProfile @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  date DateTime @default(now()) // The date for the task entry
-
-  // Daily tasks - boolean values to track if they are completed
-  meditationCompleted Boolean @default(false) // Whether meditation was completed
-  journalingCompleted Boolean @default(false) // Whether journaling was completed
-  mealsCompleted      Boolean @default(false) // Whether meals were tracked
-  sleepCompleted      Boolean @default(false) // Whether sleep goal was met
-  exerciseCompleted   Boolean @default(false) // Whether exercise goal was met
-
-  createdAt DateTime @default(now()) // Entry creation timestamp
-  updatedAt DateTime @updatedAt // Auto-update on modification
+  @@index([userId], map: "DailyMentalHealthTask_userId_fkey")
 }
 
 model Meditation {
-  id          String      @id @default(uuid()) // Unique ID for each meditation
-  userId      String // Foreign key to link to the UserProfile
+  id          String      @id @default(uuid())
+  userId      String
+  type        String
+  startedAt   DateTime
+  completedAt DateTime?
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
   userProfile UserProfile @relation(fields: [userId], references: [id], onDelete: Cascade)
-  type        String // Type of meditation (e.g., "30-Second", "1-Minute", "5-Minute")
-  startedAt   DateTime // The date and time when the meditation was started
-  completedAt DateTime? // The date and time when the meditation was completed (optional if not finished)
-  createdAt   DateTime    @default(now()) // When the entry was created
-  updatedAt   DateTime    @updatedAt // Automatically updates whenever the entry is modified
+
+  @@index([userId], map: "Meditation_userId_fkey")
 }
 
 model Journal {
-  id          String   @id @default(uuid()) // UUID for unique identification
-  title       String // Journal title
-  description String? // Optional journal description
-  createdAt   DateTime @default(now()) // Timestamp for creation
-  updatedAt   DateTime @updatedAt // Timestamp for updates
-
-  // Foreign key relation to UserProfile
+  id          String      @id @default(uuid())
+  title       String
+  description String?
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
   userId      String
   userProfile UserProfile @relation(fields: [userId], references: [id])
 
-  @@map("journals") // Optional: This maps the table name to "journals" in your Azure SQL
+  @@index([userId], map: "journals_userId_fkey")
+  @@map("journals")
 }
 
-// Table for loves
 model Love {
-  id            String      @id @default(uuid()) // Using UUID
+  id            String      @id @default(uuid())
   content       String
-  userProfile   UserProfile @relation(fields: [userProfileId], references: [id], onDelete: Cascade)
   userProfileId String
+  userProfile   UserProfile @relation(fields: [userProfileId], references: [id], onDelete: Cascade)
 
+  @@index([userProfileId], map: "loves_userProfileId_fkey")
   @@map("loves")
 }
 
-// Table for struggles
 model Struggle {
-  id            String      @id @default(uuid()) // Using UUID
+  id            String      @id @default(uuid())
   content       String
-  userProfile   UserProfile @relation(fields: [userProfileId], references: [id], onDelete: Cascade)
   userProfileId String
+  userProfile   UserProfile @relation(fields: [userProfileId], references: [id], onDelete: Cascade)
 
+  @@index([userProfileId], map: "struggles_userProfileId_fkey")
   @@map("struggles")
 }
 
-// Table for activities
 model Activity {
-  id            String      @id @default(uuid()) // Using UUID
+  id            String      @id @default(uuid())
   content       String
-  userProfile   UserProfile @relation(fields: [userProfileId], references: [id], onDelete: Cascade)
   userProfileId String
+  userProfile   UserProfile @relation(fields: [userProfileId], references: [id], onDelete: Cascade)
 
+  @@index([userProfileId], map: "activities_userProfileId_fkey")
   @@map("activities")
 }
 
-// Table for fun facts
 model FunFact {
-  id            String      @id @default(uuid()) // Using UUID
+  id            String      @id @default(uuid())
   content       String
-  userProfile   UserProfile @relation(fields: [userProfileId], references: [id], onDelete: Cascade)
   userProfileId String
+  userProfile   UserProfile @relation(fields: [userProfileId], references: [id], onDelete: Cascade)
 
+  @@index([userProfileId], map: "fun_facts_userProfileId_fkey")
   @@map("fun_facts")
 }
 
-// Table for past chats
 model Chat {
-  id            String      @id @default(uuid()) // Using UUID
-  threadsId     String // Store the thread ID from OpenAI or chat service
-  userProfile   UserProfile @relation(fields: [userProfileId], references: [id], onDelete: Cascade)
+  id            String      @id @default(uuid())
+  threadsId     String
   userProfileId String
   createdAt     DateTime    @default(now())
   updatedAt     DateTime    @updatedAt
+  userProfile   UserProfile @relation(fields: [userProfileId], references: [id], onDelete: Cascade)
 
-  @@map("chats") // Optional: This maps the table name to "chats"
+  @@index([userProfileId], map: "chats_userProfileId_fkey")
+  @@map("chats")
 }

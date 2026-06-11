@@ -5,12 +5,12 @@ import Sidebar from "@/components/Sidebar";
 import TopBar from "@/components/TopBar";
 import { useSession } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
-import "react-quill/dist/quill.snow.css"; // Make sure you import the styles
+import "react-quill-new/dist/quill.snow.css"; // Make sure you import the styles
 import { Suspense } from "react";
 
 
 // Dynamically import ReactQuill to avoid SSR issues
-const ReactQuill = dynamic(() => import("react-quill"), { ssr: false });
+const ReactQuill = dynamic(() => import("react-quill-new"), { ssr: false });
 
 // Interface for journal
 interface Journal {

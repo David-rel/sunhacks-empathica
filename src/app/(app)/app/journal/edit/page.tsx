@@ -1,16 +1,10 @@
 "use client";
 import React, { useEffect, useState } from "react";
-import dynamic from "next/dynamic"; // Import dynamic for lazy loading
 import Sidebar from "@/components/Sidebar";
 import TopBar from "@/components/TopBar";
 import { useSession } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
-import "react-quill-new/dist/quill.snow.css"; // Make sure you import the styles
 import { Suspense } from "react";
-
-
-// Dynamically import ReactQuill to avoid SSR issues
-const ReactQuill = dynamic(() => import("react-quill-new"), { ssr: false });
 
 // Interface for journal
 interface Journal {
@@ -146,10 +140,10 @@ const EditJournalComponent = () => {
               className="w-full p-2 border rounded mb-4"
               placeholder="Title"
             />
-            <ReactQuill
+            <textarea
               value={description}
-              onChange={setDescription}
-              className="h-64 mb-4"
+              onChange={(e) => setDescription(e.target.value)}
+              className="h-64 mb-4 w-full p-2 border rounded"
             />
             <button
               onClick={handleSave}

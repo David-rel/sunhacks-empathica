@@ -1,15 +1,9 @@
 "use client";
 import React, { useState, useEffect, Suspense } from "react";
-import dynamic from "next/dynamic";
-import "react-quill-new/dist/quill.snow.css";
 import Sidebar from "@/components/Sidebar";
 import TopBar from "@/components/TopBar";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
-
-const ReactQuill = dynamic(() => import("react-quill-new"), {
-  ssr: false,
-});
 
 interface UserProfile {
   id: string;
@@ -132,7 +126,7 @@ const CreateJournal = () => {
                 placeholder="Enter your journal title"
               />
             </div>
-            {/* Description Input (React Quill) */}
+            {/* Description Input */}
             <div className="mb-4">
               <label
                 className="block text-sm font-bold mb-2 text-darkNavy"
@@ -140,11 +134,11 @@ const CreateJournal = () => {
               >
                 Description
               </label>
-              <ReactQuill
+              <textarea
                 value={description}
-                onChange={setDescription}
+                onChange={(e) => setDescription(e.target.value)}
                 placeholder="Write your journal description..."
-                className="h-40"
+                className="h-40 w-full border border-gray-300 p-2 rounded-lg"
               />
             </div>
             {/* Create Journal Button */}
